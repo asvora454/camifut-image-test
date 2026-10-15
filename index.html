@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CAMIFUT · Prueba externa HTTPS de imágenes</title>
+  <style>
+    :root { font: 16px/1.5 system-ui, sans-serif; color: #142720; background: #f3f6f4; }
+    * { box-sizing: border-box; }
+    body { max-width: 1080px; margin: auto; padding: 28px 18px 60px; }
+    h1 { line-height: 1.15; }
+    .notice { padding: 14px 18px; background: #e6f0e9; border-left: 4px solid #26744c; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 24px; }
+    .card { min-width: 0; padding: 16px; border: 1px solid #cbd7ce; border-radius: 12px; background: #fff; }
+    .frame { min-height: 300px; aspect-ratio: 4 / 5; display: grid; place-items: center; background: #e8ece9; border-radius: 8px; overflow: hidden; }
+    .frame img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .status { display: inline-block; padding: 5px 10px; border-radius: 6px; font-weight: 700; background: #e8ece9; }
+    .status.loaded { background: #d5f0dc; color: #18552c; }
+    .status.failed { background: #ffe1df; color: #8e2119; }
+    .details { color: #45584e; font-size: .9rem; overflow-wrap: anywhere; }
+    code { overflow-wrap: anywhere; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 8px; border: 1px solid #cbd7ce; text-align: left; }
+  </style>
+  <script>
+    'use strict';
+    function reportImage(id, eventName, image) {
+      const badge = document.getElementById(`status-${id}`);
+      const details = document.getElementById(`details-${id}`);
+      badge.textContent = eventName === 'load' ? 'CARGA' : 'FALLA';
+      badge.className = `status ${eventName === 'load' ? 'loaded' : 'failed'}`;
+      setTimeout(() => {
+        const entry = performance.getEntriesByName(image.src, 'resource').at(-1);
+        const observedStatus = entry && 'responseStatus' in entry ? entry.responseStatus : 'no disponible';
+        details.textContent = `Evento: ${eventName}; naturalWidth: ${image.naturalWidth}; naturalHeight: ${image.naturalHeight}; complete: ${image.complete}; initiatorType: ${entry?.initiatorType ?? 'no disponible'}; Resource Timing responseStatus: ${observedStatus}. Un 0 aquí NO equivale al estado HTTP de Network.`;
+      }, 0);
+    }
+    addEventListener('DOMContentLoaded', () => {
+      document.getElementById('origin').textContent = `Página: ${location.href} · protocolo: ${location.protocol} · origen: ${location.origin}`;
+    });
+  </script>
+</head>
+<body>
+  <h1>Prueba externa de fotografías Yupoo</h1>
+  <p class="notice">Solo diagnóstico. Estas tres etiquetas <code>img</code> usan las URL originales sin proxy, atributos de referencia especiales, modificación de cabeceras ni fallback. Esta página no descarga archivos de forma explícita ni publica CAMIFUT. Para la prueba final, súbela únicamente a un alojamiento de ensayo HTTPS separado y autorizado.</p>
+  <p id="origin">Página: pendiente de lectura.</p>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Porto · 258397373</h2>
+      <div class="frame"><img src="https://photo.yupoo.com/194939/ab75e16160/small.jpeg" alt="Fotografía de Porto; si no carga se verá el texto alternativo" onload="reportImage(258397373, 'load', this)" onerror="reportImage(258397373, 'error', this)"></div>
+      <p><span class="status" id="status-258397373" role="status">PENDIENTE</span></p>
+      <p class="details" id="details-258397373">Sin evento registrado todavía.</p>
+      <p class="details"><code>https://photo.yupoo.com/194939/ab75e16160/small.jpeg</code></p>
+    </section>
+
+    <section class="card">
+      <h2>Argentina · 258395695</h2>
+      <div class="frame"><img src="https://photo.yupoo.com/194939/a2d7a38541/small.jpeg" alt="Fotografía de Argentina; si no carga se verá el texto alternativo" onload="reportImage(258395695, 'load', this)" onerror="reportImage(258395695, 'error', this)"></div>
+      <p><span class="status" id="status-258395695" role="status">PENDIENTE</span></p>
+      <p class="details" id="details-258395695">Sin evento registrado todavía.</p>
+      <p class="details"><code>https://photo.yupoo.com/194939/a2d7a38541/small.jpeg</code></p>
+    </section>
+
+    <section class="card">
+      <h2>Zaragoza · 258369578</h2>
+      <div class="frame"><img src="https://photo.yupoo.com/194939/f00c02d4f0/small.jpeg" alt="Fotografía de Zaragoza; si no carga se verá el texto alternativo" onload="reportImage(258369578, 'load', this)" onerror="reportImage(258369578, 'error', this)"></div>
+      <p><span class="status" id="status-258369578" role="status">PENDIENTE</span></p>
+      <p class="details" id="details-258369578">Sin evento registrado todavía.</p>
+      <p class="details"><code>https://photo.yupoo.com/194939/f00c02d4f0/small.jpeg</code></p>
+    </section>
+  </main>
+
+  <h2>Lectura correcta del resultado</h2>
+  <p>«CARGA» requiere además <code>naturalWidth &gt; 0</code>; «FALLA» indica un evento <code>error</code>. Esta página no puede conocer con fiabilidad el código HTTP ni las cabeceras de una imagen entre orígenes: consulta Chrome DevTools → Network. Una respuesta <code>responseStatus=0</code> en Resource Timing puede deberse a restricciones de visibilidad y <strong>no</strong> significa HTTP 0.</p>
+</body>
+</html>
